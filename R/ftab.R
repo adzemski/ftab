@@ -29,7 +29,7 @@ add_column <- function(tb, name, data, label = name, format = if(is.character(da
 
   if (is.character(data)) if (sanitize.text) {data <- xtable::sanitize(data)}
 
-  tb$cols <- setNames(c(tb$cols, list(list(label = label, data = data, format = format, align = align))), c(names(tb$cols), label))
+  tb$cols <- setNames(c(tb$cols, list(list(label = label, data = data, format = format, align = align))), c(names(tb$cols), name))
 
   tb
 }
@@ -100,7 +100,7 @@ get_ready <- function(tb, orderCol = names(tb$cols), vadj = rep.int("\\\\ \n", t
   # add artifical columns for horizontal space
   if (length(tb$hspace) > 0) {
     for (i in tb$hspace) {
-      tb <- add_column(tb, label = '', label = paste0('_after_', i$afterCol), data = rep.int('', times = tb.nrow))
+      tb <- add_column(tb,  paste0('_after_', i$afterCol), label = '', data = rep.int('', times = tb.nrow))
       hrow.col <- which(orderCol == i$afterCol)
       orderCol <- c(orderCol[seq_len(hrow.col)], paste0('_after_', i$afterCol), orderCol[hrow.col + seq_len(length(orderCol) - hrow.col)])
     }
