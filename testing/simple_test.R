@@ -9,3 +9,9 @@ class(tab)
 print(tab)
 tab <- set_column_format(tab, "id", "%s")
 print(tab)
+
+tab <- set_column_label(tab, "id", "identifier")
+str(tab)
+
+tab <- set_column_name(tab, c("groupA_x", "groupB_x"), c("A_x", "B_x"))
+str(tab)

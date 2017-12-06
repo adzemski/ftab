@@ -11,7 +11,7 @@ df_to_table <- function(df, ...) {
     labels <- colnames(df)
 
   for (c in seq_along(colnames(df))) {
-    tb <- add_column(tb, caption = colnames(df)[[c]], data = df[[c]], label = labels[[c]])
+    tb <- add_column(tb, name = colnames(df)[[c]], data = df[[c]], label = labels[[c]])
   }
 
   tb
@@ -23,13 +23,13 @@ make_empty_table <- function(default_digits = 2) {
   tb
 }
 
-add_column <- function(tb, caption, data, label = caption, format = if(is.character(data)) "%s" else sprintf("%%.%df", digits), digits = tb$default_digits,
+add_column <- function(tb, name, data, label = name, format = if(is.character(data)) "%s" else sprintf("%%.%df", digits), digits = tb$default_digits,
                         align = "r", sanitize.text = TRUE) {
-  if (anyDuplicated(c(names(tb$cols), label))) stop('Adding column would make column label non-unique')
+  if (anyDuplicated(c(names(tb$cols), name))) stop('Adding column would make column name non-unique')
 
   if (is.character(data)) if (sanitize.text) {data <- xtable::sanitize(data)}
 
-  tb$cols <- setNames(c(tb$cols, list(list(caption = caption, data = data, format = format, align = align))), c(names(tb$cols), label))
+  tb$cols <- setNames(c(tb$cols, list(list(label = label, data = data, format = format, align = align))), c(names(tb$cols), label))
 
   tb
 }
@@ -61,6 +61,35 @@ set_column_format <- function(tb, column_name, new_format) {
   tb
 }
 
+set_column_label <- function(tb, column_name, new_label) {
+
+  if (!is.character(column_name)) stop("Column names must be characters")
+
+  column_name <- column_name[column_name %in% names(tb$cols)]
+
+  if (length(new_label) != length(column_name))
+    new_label <- rep(new_label[[1]], times = length(column_name))
+
+  for (i in seq_along(column_name))
+    tb$cols[[column_name[[i]]]]$label <- new_label[[i]]
+
+  tb
+}
+
+set_column_name <- function(tb, old_name, new_name) {
+
+  if (!is.character(old_name)) stop("Column names must be characters")
+
+  old_name <- old_name[old_name %in% names(tb$cols)]
+
+  if (length(new_name) != length(old_name))
+    new_name <- rep(new_name[[1]], times = length(old_name))
+
+  names(tb$cols)[match(old_name, names(tb$cols))] <- new_name
+
+  tb
+}
+
 get_ready <- function(tb, orderCol = names(tb$cols), vadj = rep.int("\\\\ \n", times = tb.nrow)) {
 
   tb.nrow <- max(sapply(tb$cols, FUN = function(x) length(x$data)))
@@ -71,7 +100,7 @@ get_ready <- function(tb, orderCol = names(tb$cols), vadj = rep.int("\\\\ \n", t
   # add artifical columns for horizontal space
   if (length(tb$hspace) > 0) {
     for (i in tb$hspace) {
-      tb <- ftab.addcol(tb, caption = '', label = paste0('_after_', i$afterCol), data = rep.int('', times = tb.nrow))
+      tb <- add_column(tb, label = '', label = paste0('_after_', i$afterCol), data = rep.int('', times = tb.nrow))
       hrow.col <- which(orderCol == i$afterCol)
       orderCol <- c(orderCol[seq_len(hrow.col)], paste0('_after_', i$afterCol), orderCol[hrow.col + seq_len(length(orderCol) - hrow.col)])
     }
@@ -84,7 +113,7 @@ get_ready <- function(tb, orderCol = names(tb$cols), vadj = rep.int("\\\\ \n", t
 
   tb$cols <- lapply(tb$cols[orderCol], formatCol)
 
-  tb.colnames <- paste(sapply(tb$cols, function(x) x$caption), collapse = " & ")
+  tb.colnames <- paste(sapply(tb$cols, function(x) x$label), collapse = " & ")
 
   rows <- vector(mode = 'character', length = tb.nrow)
 
