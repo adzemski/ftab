@@ -13,5 +13,9 @@ print(tab)
 tab <- set_column_label(tab, "id", "identifier")
 str(tab)
 
-tab <- set_column_name(tab, c("groupA_x", "groupB_x"), c("A_x", "B_x"))
-str(tab)
+# bug: also have to update e.g. braces to reflect new column names
+# tab <- set_column_name(tab, c("groupA_x", "groupB_x"), c("A_x", "B_x"))
+# str(tab)
+
+tab <- add_space(tab, "groupA_x")
+print(tab)
