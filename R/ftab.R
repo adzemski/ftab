@@ -81,11 +81,25 @@ set_column_name <- function(tb, old_name, new_name) {
   if (!is.character(old_name)) stop("Column names must be characters")
 
   old_name <- old_name[old_name %in% names(tb$cols)]
+  new_name <- new_name[old_name %in% names(tb$cols)]
 
-  if (length(new_name) != length(old_name))
-    new_name <- rep(new_name[[1]], times = length(old_name))
+  if (length(old_name) == 0) return(NULL)
 
-  names(tb$cols)[match(old_name, names(tb$cols))] <- new_name
+  new_names <- names(tb$cols)
+
+  new_names[match(old_name, new_names)] <- new_name
+  names(new_names) <- names(tb$cols)
+
+  names(tb$cols) <- new_names
+
+  # change names in braces
+  change_col_name_braces <- function(brace) {
+    brace$startCol = new_names[brace$startCol]
+    brace$endCol = new_names[brace$endCol]
+    brace
+  }
+
+  tb$braces <- lapply(tb$braces, change_col_name_braces)
 
   tb
 }
