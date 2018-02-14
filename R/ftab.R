@@ -29,10 +29,10 @@ make_empty_table <- function(default_digits = 2) {
 add_column <- function(tb, name, data, label = name,
                        format = if(is.character(data)) "%s" else sprintf("%%.%df", digits),
                        digits = tb$default_digits,
-                       align = "r", sanitize.text = TRUE) {
+                       align = "r", sanitize_text = TRUE) {
   if (anyDuplicated(c(names(tb$cols), name))) stop('Adding column would make column name non-unique')
 
-  if (is.character(data)) if (sanitize.text) {data <- xtable::sanitize(data)}
+  if (is.character(data)) if (sanitize_text) {data <- xtable::sanitize(data)}
 
   tb$cols <-
     setNames(c(tb$cols, list(list(label = label, data = data, format = format, align = align))),
@@ -41,14 +41,14 @@ add_column <- function(tb, name, data, label = name,
   tb
 }
 
-add_brace <- function(tb, startCol, endCol, text = "") {
-  tb$braces <- c(tb$braces, list(list(startCol = startCol, endCol = endCol, text = text)))
+add_brace <- function(tb, start_col, end_col, text = "") {
+  tb$braces <- c(tb$braces, list(list(start_col = start_col, end_col = end_col, text = text)))
 
   tb
 }
 
-add_space <- function(tb, afterCol, space = 0, text = sprintf("@{\\hspace{%fem}}", space)) {
-  tb$hspace <- c(tb$hspace, list(list(afterCol = afterCol, text = text)))
+add_space <- function(tb, after_col, space = 0, text = sprintf("@{\\hspace{%fem}}", space)) {
+  tb$hspace <- c(tb$hspace, list(list(after_col = after_col, text = text)))
 
   tb
 }
@@ -101,8 +101,8 @@ set_column_name <- function(tb, old_name, new_name) {
 
   # change names in braces
   change_col_name_braces <- function(brace) {
-    brace$startCol = new_names[brace$startCol]
-    brace$endCol = new_names[brace$endCol]
+    brace$start_col = new_names[brace$start_col]
+    brace$end_col = new_names[brace$end_col]
     brace
   }
 
@@ -111,56 +111,57 @@ set_column_name <- function(tb, old_name, new_name) {
   tb
 }
 
-get_ready <- function(tb, orderCol = names(tb$cols), vadj = rep.int("\\\\ \n", times = tb.nrow)) {
+get_ready <- function(tb, order_col = names(tb$cols), vadj = rep.int("\\\\ \n", times = tb_nrow)) {
 
-  tb.nrow <- max(sapply(tb$cols, FUN = function(x) length(x$data)))
+  tb_nrow <- max(sapply(tb$cols, FUN = function(x) length(x$data)))
 
-  # force evaluation or orderCol
-  orderCol <- orderCol
+  # force evaluation or order_col
+  order_col <- order_col
 
   # add artifical columns for horizontal space
   if (length(tb$hspace) > 0) {
     for (i in tb$hspace) {
-      tb <- add_column(tb,  paste0('_after_', i$afterCol), label = '', data = rep.int('', times = tb.nrow))
-      hrow.col <- which(orderCol == i$afterCol)
-      orderCol <- c(orderCol[seq_len(hrow.col)], paste0('_after_', i$afterCol), orderCol[hrow.col + seq_len(length(orderCol) - hrow.col)])
+      tb <- add_column(tb,  paste0('_after_', i$after_col), label = '', data = rep.int('', times = tb_nrow))
+      hrow.col <- which(order_col == i$after_col)
+      order_col <- c(order_col[seq_len(hrow.col)], paste0('_after_', i$after_col),
+                    order_col[hrow.col + seq_len(length(order_col) - hrow.col)])
     }
   }
 
   formatCol <- function(col) {
-    col$data <- c(sprintf(col$format, col$data), rep.int("", times = tb.nrow - length(col$data)))
+    col$data <- c(sprintf(col$format, col$data), rep.int("", times = tb_nrow - length(col$data)))
     col
   }
 
-  tb$cols <- lapply(tb$cols[orderCol], formatCol)
+  tb$cols <- lapply(tb$cols[order_col], formatCol)
 
   tb.colnames <- paste(sapply(tb$cols, function(x) x$label), collapse = " & ")
 
-  rows <- vector(mode = 'character', length = tb.nrow)
+  rows <- vector(mode = 'character', length = tb_nrow)
 
-  for (i in seq_len(tb.nrow)) {
+  for (i in seq_len(tb_nrow)) {
     rows[[i]] <- paste(sapply(tb$cols, function(x) x$data[[i]]), collapse = " & ")
   }
 
   body <- paste(paste0(rows, vadj), collapse = '')
 
-  tb.ncol <- length(tb$cols)
+  tb_ncol <- length(tb$cols)
 
   halign <- lapply(tb$cols, function(x) x$align)
   names(halign) <- names(tb$cols)
 
   if (length(tb$hspace) > 0) {
     for (i in tb$hspace) {
-      halign[[paste0('_after_', i$afterCol)]] <- paste0(halign[[paste0('_after_', i$afterCol)]], i$text, sep = ' ')
+      halign[[paste0('_after_', i$after_col)]] <- paste0(halign[[paste0('_after_', i$after_col)]], i$text, sep = ' ')
     }
   }
 
   if (length(tb$braces) > 0) {
 
     translate.brace <- function(b) {
-      b$startCol = which(names(tb$cols) == b$startCol)
-      b$endCol = which(names(tb$cols) == b$endCol)
-      b$length <- b$endCol - b$startCol + 1
+      b$start_col = which(names(tb$cols) == b$start_col)
+      b$end_col = which(names(tb$cols) == b$end_col)
+      b$length <- b$end_col - b$start_col + 1
       if (b$length < 1) stop('brace does not have positive length')
       b
     }
@@ -168,24 +169,24 @@ get_ready <- function(tb, orderCol = names(tb$cols), vadj = rep.int("\\\\ \n", t
     # translate to column numbers
     braces <- lapply(tb$braces, translate.brace)
     # sort
-    braces <- braces[order(sapply(braces, function(x) x$startCol))]
+    braces <- braces[order(sapply(braces, function(x) x$start_col))]
 
     b <- braces[[1]]
     rowbraces1 <-
-      paste(c(rep.int("", b$startCol - 1), sprintf("\\multicolumn{%d}{c}{%s}", b$length, b$text)),
+      paste(c(rep.int("", b$start_col - 1), sprintf("\\multicolumn{%d}{c}{%s}", b$length, b$text)),
             collapse = ' & ')
-    rowbraces2 <- sprintf('\\cmidrule{%d-%d}', b$startCol, b$endCol)
-    endlast <- b$endCol
+    rowbraces2 <- sprintf('\\cmidrule{%d-%d}', b$start_col, b$end_col)
+    endlast <- b$end_col
 
     for (b in braces[1 + seq_len(length(braces) - 1)]) {
-      if (b$startCol - 1 - endlast < 0) stop('overlapping braces')
-      rowbraces1 <- paste(c(rowbraces1, rep.int("", b$startCol - 1 - endlast),
+      if (b$start_col - 1 - endlast < 0) stop('overlapping braces')
+      rowbraces1 <- paste(c(rowbraces1, rep.int("", b$start_col - 1 - endlast),
                             sprintf("\\multicolumn{%d}{c}{%s}", b$length, b$text)), collapse = ' & ')
-      endlast <- b$endCol
-      rowbraces2 <- paste0(rowbraces2, sprintf('\\cmidrule{%d-%d}', b$startCol, b$endCol))
+      endlast <- b$end_col
+      rowbraces2 <- paste0(rowbraces2, sprintf('\\cmidrule{%d-%d}', b$start_col, b$end_col))
     }
 
-    rowbraces1 <- paste0(rowbraces1, paste(rep.int(' & ', tb.ncol - endlast), collapse = ""), '\\\\ \n')
+    rowbraces1 <- paste0(rowbraces1, paste(rep.int(' & ', tb_ncol - endlast), collapse = ""), '\\\\ \n')
 
   } else
     rowbraces1 <- rowbraces2 <- ''
