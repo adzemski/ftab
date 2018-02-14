@@ -171,13 +171,16 @@ get_ready <- function(tb, orderCol = names(tb$cols), vadj = rep.int("\\\\ \n", t
     braces <- braces[order(sapply(braces, function(x) x$startCol))]
 
     b <- braces[[1]]
-    rowbraces1 <- paste(c(rep.int("", b$startCol - 1), sprintf("\\multicolumn{%d}{c}{%s}", b$length, b$text)), collapse = ' & ')
+    rowbraces1 <-
+      paste(c(rep.int("", b$startCol - 1), sprintf("\\multicolumn{%d}{c}{%s}", b$length, b$text)),
+            collapse = ' & ')
     rowbraces2 <- sprintf('\\cmidrule{%d-%d}', b$startCol, b$endCol)
     endlast <- b$endCol
 
     for (b in braces[1 + seq_len(length(braces) - 1)]) {
       if (b$startCol - 1 - endlast < 0) stop('overlapping braces')
-      rowbraces1 <- paste(c(rowbraces1, rep.int("", b$startCol - 1 - endlast), sprintf("\\multicolumn{%d}{c}{%s}", b$length, b$text)), collapse = ' & ')
+      rowbraces1 <- paste(c(rowbraces1, rep.int("", b$startCol - 1 - endlast),
+                            sprintf("\\multicolumn{%d}{c}{%s}", b$length, b$text)), collapse = ' & ')
       endlast <- b$endCol
       rowbraces2 <- paste0(rowbraces2, sprintf('\\cmidrule{%d-%d}', b$startCol, b$endCol))
     }
@@ -187,7 +190,8 @@ get_ready <- function(tb, orderCol = names(tb$cols), vadj = rep.int("\\\\ \n", t
   } else
     rowbraces1 <- rowbraces2 <- ''
 
-  list(body = body, header = paste0(rowbraces1, rowbraces2, tb.colnames), halign = paste0(c('@{}', halign), collapse = ''))
+  list(body = body, header = paste0(rowbraces1, rowbraces2, tb.colnames),
+       halign = paste0(c('@{}', halign), collapse = ''))
 }
 
 print.ftab <- function(tb, filename = NULL, environment = 'tabular', env_arg1 = NULL, ...) {
