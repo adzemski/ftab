@@ -1,17 +1,20 @@
 
 
-df_to_table <- function(df, ...) {
+df_to_table <- function(df, col_labels = colnames(df), ...) {
   tb <- make_empty_table(...)
 
-  if (any(is.na(colnames(df)))) colnames(df) <- paste0('column', seq_len(ncol(df)))
+  if (anyDuplicated(colnames(df))) stop("Non-unique column names.")
 
-  if (anyDuplicated(colnames(df)))
-    labels <- paste0('column', seq_len(ncol(df)))
-  else
-    labels <- colnames(df)
+  if (length(col_labels) != ncol(df)) {
+    col_labels <- colnames(df)
+    warning("Provided col_labels are of incorrect length. Default to column names.")
+  }
+
+  col_labels[!is.character(col_labels)] <-
+    paste0('column', seq_len(ncol(df)))[!is.character(col_labels)]
 
   for (c in seq_along(colnames(df))) {
-    tb <- add_column(tb, name = colnames(df)[[c]], data = df[[c]], label = labels[[c]])
+    tb <- add_column(tb, name = colnames(df)[[c]], data = df[[c]], label = col_labels[[c]])
   }
 
   tb
@@ -23,13 +26,17 @@ make_empty_table <- function(default_digits = 2) {
   tb
 }
 
-add_column <- function(tb, name, data, label = name, format = if(is.character(data)) "%s" else sprintf("%%.%df", digits), digits = tb$default_digits,
-                        align = "r", sanitize.text = TRUE) {
+add_column <- function(tb, name, data, label = name,
+                       format = if(is.character(data)) "%s" else sprintf("%%.%df", digits),
+                       digits = tb$default_digits,
+                       align = "r", sanitize.text = TRUE) {
   if (anyDuplicated(c(names(tb$cols), name))) stop('Adding column would make column name non-unique')
 
   if (is.character(data)) if (sanitize.text) {data <- xtable::sanitize(data)}
 
-  tb$cols <- setNames(c(tb$cols, list(list(label = label, data = data, format = format, align = align))), c(names(tb$cols), name))
+  tb$cols <-
+    setNames(c(tb$cols, list(list(label = label, data = data, format = format, align = align))),
+             c(names(tb$cols), name))
 
   tb
 }
