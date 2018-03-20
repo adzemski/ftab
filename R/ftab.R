@@ -32,14 +32,17 @@ make_empty_table <- function(default_digits = 2, default_sanitize_text = TRUE,
 add_column <- function(tb, name, data, label = name,
                        format = if(is.character(data)) "%s" else sprintf("%%.%df", digits),
                        digits = tb$default_digits,
-                       align = "r", sanitize_text = tb$default_sanitize_text) {
+                       align = "r", sanitize_text = tb$default_sanitize_text,
+                       NA_symbol = tb$default_NA_symbol, NAN_symbol = tb$default_NAN_symbol) {
+
   if (anyDuplicated(c(names(tb$cols), name)))
     stop('Adding column would make column name non-unique')
 
   if (is.character(data)) if (sanitize_text) {data <- xtable::sanitize(data)}
 
   tb$cols <-
-    setNames(c(tb$cols, list(list(label = label, data = data, format = format, align = align))),
+    setNames(c(tb$cols, list(list(label = label, data = data, format = format, align = align,
+                                  NA_symbol = NA_symbol, NAN_symbol = NAN_symbol))),
              c(names(tb$cols), name))
 
   tb
@@ -136,8 +139,15 @@ get_ready <- function(tb, order_col = names(tb$cols),
   }
 
   format_col <- function(col) {
-    col$data <-
-      c(sprintf(col$format, col$data), rep.int("", times = tb_nrow - length(col$data)))
+    NA_rows <- is.na(col$data)
+    NAN_rows <- is.nan(col$data)
+
+    col$data <- sprintf(col$format, col$data)
+
+    col$data[NA_rows] <- col$NA_symbol
+    col$data[NAN_rows] <- col$NAN_symbol
+
+    col$data <- c(col$data, rep.int("", times = tb_nrow - length(col$data)))
     col
   }
 
