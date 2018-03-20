@@ -33,7 +33,8 @@ add_column <- function(tb, name, data, label = name,
                        format = if(is.character(data)) "%s" else sprintf("%%.%df", digits),
                        digits = tb$default_digits,
                        align = "r", sanitize_text = tb$default_sanitize_text) {
-  if (anyDuplicated(c(names(tb$cols), name))) stop('Adding column would make column name non-unique')
+  if (anyDuplicated(c(names(tb$cols), name)))
+    stop('Adding column would make column name non-unique')
 
   if (is.character(data)) if (sanitize_text) {data <- xtable::sanitize(data)}
 
@@ -114,7 +115,8 @@ set_column_name <- function(tb, old_name, new_name) {
   tb
 }
 
-get_ready <- function(tb, order_col = names(tb$cols), vadj = rep.int("\\\\ \n", times = tb_nrow)) {
+get_ready <- function(tb, order_col = names(tb$cols),
+                      vadj = rep.int("\\\\ \n", times = tb_nrow)) {
 
   tb_nrow <- max(sapply(tb$cols, FUN = function(x) length(x$data)))
 
@@ -124,7 +126,9 @@ get_ready <- function(tb, order_col = names(tb$cols), vadj = rep.int("\\\\ \n", 
   # add artifical columns for horizontal space
   if (length(tb$hspace) > 0) {
     for (i in tb$hspace) {
-      tb <- add_column(tb,  paste0('_after_', i$after_col), label = '', data = rep.int('', times = tb_nrow))
+      tb <-
+        add_column(tb,  paste0('_after_', i$after_col), label = '',
+                   data = rep.int('', times = tb_nrow))
       hrow_col <- which(order_col == i$after_col)
       order_col <- c(order_col[seq_len(hrow_col)], paste0('_after_', i$after_col),
                     order_col[hrow_col + seq_len(length(order_col) - hrow_col)])
@@ -132,7 +136,8 @@ get_ready <- function(tb, order_col = names(tb$cols), vadj = rep.int("\\\\ \n", 
   }
 
   format_col <- function(col) {
-    col$data <- c(sprintf(col$format, col$data), rep.int("", times = tb_nrow - length(col$data)))
+    col$data <-
+      c(sprintf(col$format, col$data), rep.int("", times = tb_nrow - length(col$data)))
     col
   }
 
@@ -155,7 +160,8 @@ get_ready <- function(tb, order_col = names(tb$cols), vadj = rep.int("\\\\ \n", 
 
   if (length(tb$hspace) > 0) {
     for (i in tb$hspace) {
-      halign[[paste0('_after_', i$after_col)]] <- paste0(halign[[paste0('_after_', i$after_col)]], i$text, sep = ' ')
+      halign[[paste0('_after_', i$after_col)]] <-
+        paste0(halign[[paste0('_after_', i$after_col)]], i$text, sep = ' ')
     }
   }
 
@@ -189,7 +195,8 @@ get_ready <- function(tb, order_col = names(tb$cols), vadj = rep.int("\\\\ \n", 
       rowbraces2 <- paste0(rowbraces2, sprintf('\\cmidrule{%d-%d}', b$start_col, b$end_col))
     }
 
-    rowbraces1 <- paste0(rowbraces1, paste(rep.int(' & ', tb_ncol - endlast), collapse = ""), '\\\\ \n')
+    rowbraces1 <-
+      paste0(rowbraces1, paste(rep.int(' & ', tb_ncol - endlast), collapse = ""), '\\\\ \n')
 
   } else
     rowbraces1 <- rowbraces2 <- ''
