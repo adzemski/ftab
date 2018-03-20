@@ -20,8 +20,11 @@ df_to_table <- function(df, col_labels = colnames(df), ...) {
   tb
 }
 
-make_empty_table <- function(default_digits = 2) {
-  tb <- list(cols = list(), braces = list(), hspace = list(), default_digits = default_digits)
+make_empty_table <- function(default_digits = 2, default_sanitize_text = TRUE,
+                             default_NA_symbol = "NA", default_NAN_symbol = "NAN") {
+  tb <- list(cols = list(), braces = list(), hspace = list(),
+             default_digits = default_digits, default_sanitize_text = default_sanitize_text,
+             default_NA_symbol = default_NA_symbol, default_NAN_symbol = default_NAN_symbol)
   class(tb) <- c("ftab", class(tb))
   tb
 }
@@ -29,7 +32,7 @@ make_empty_table <- function(default_digits = 2) {
 add_column <- function(tb, name, data, label = name,
                        format = if(is.character(data)) "%s" else sprintf("%%.%df", digits),
                        digits = tb$default_digits,
-                       align = "r", sanitize_text = TRUE) {
+                       align = "r", sanitize_text = tb$default_sanitize_text) {
   if (anyDuplicated(c(names(tb$cols), name))) stop('Adding column would make column name non-unique')
 
   if (is.character(data)) if (sanitize_text) {data <- xtable::sanitize(data)}
