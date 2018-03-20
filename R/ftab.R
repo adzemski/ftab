@@ -122,20 +122,20 @@ get_ready <- function(tb, order_col = names(tb$cols), vadj = rep.int("\\\\ \n", 
   if (length(tb$hspace) > 0) {
     for (i in tb$hspace) {
       tb <- add_column(tb,  paste0('_after_', i$after_col), label = '', data = rep.int('', times = tb_nrow))
-      hrow.col <- which(order_col == i$after_col)
-      order_col <- c(order_col[seq_len(hrow.col)], paste0('_after_', i$after_col),
-                    order_col[hrow.col + seq_len(length(order_col) - hrow.col)])
+      hrow_col <- which(order_col == i$after_col)
+      order_col <- c(order_col[seq_len(hrow_col)], paste0('_after_', i$after_col),
+                    order_col[hrow_col + seq_len(length(order_col) - hrow_col)])
     }
   }
 
-  formatCol <- function(col) {
+  format_col <- function(col) {
     col$data <- c(sprintf(col$format, col$data), rep.int("", times = tb_nrow - length(col$data)))
     col
   }
 
-  tb$cols <- lapply(tb$cols[order_col], formatCol)
+  tb$cols <- lapply(tb$cols[order_col], format_col)
 
-  tb.colnames <- paste(sapply(tb$cols, function(x) x$label), collapse = " & ")
+  tb_colnames <- paste(sapply(tb$cols, function(x) x$label), collapse = " & ")
 
   rows <- vector(mode = 'character', length = tb_nrow)
 
@@ -191,7 +191,7 @@ get_ready <- function(tb, order_col = names(tb$cols), vadj = rep.int("\\\\ \n", 
   } else
     rowbraces1 <- rowbraces2 <- ''
 
-  list(body = body, header = paste0(rowbraces1, rowbraces2, tb.colnames),
+  list(body = body, header = paste0(rowbraces1, rowbraces2, tb_colnames),
        halign = paste0(c('@{}', halign), collapse = ''))
 }
 
